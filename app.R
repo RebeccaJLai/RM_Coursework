@@ -18,11 +18,11 @@ library(tidyverse)
 # initiation of the loop. Hopefully this minimises the risk.
 
 # none of my testing has run up against these problems thus far- feel free to
-# test it to destruction and email problems/fixes to me.
+# test it and email problems/fixes to me or fix it yourself.
 
 # It is ugly.
 
- 
+
 
 # Define UI for Signal Detection Calculator that mimics the
 # functionality of the faceresearch SDA (DeBruine, n.d.)
@@ -39,17 +39,19 @@ ui <- fluidPage(
                   wellPanel(numericInput(inputId = "hits", # in panel together for tidyness
                                          label =  "Hits", 
                                          min = 0, 
-                                         value = 1),
+                                         value = 155),
                             numericInput(inputId = "misses",
                                          label = "Misses",
                                          min = 0,
-                                         value = 1),
+                                         value = 55),
                             numericInput(inputId = "false_alarms",
                                          label = "False Alarms", 
-                                         min = 0, value = 1), 
+                                         min = 0, 
+                                         value = 44), 
                             numericInput(inputId = "correct_rejections",
                                          label = "Correct Rejections", 
-                                         min = 0, value = 1), 
+                                         min = 0, 
+                                         value = 145), 
                             numericInput(inputId = "bs", 
                                          label = "Bootstrap Iterations", 
                                          min = 0, value = 100),
@@ -62,8 +64,15 @@ ui <- fluidPage(
                   # graph and stats output defined and positioned
                   plotOutput(outputId = "d_plot"))),
   
-  fluidRow(column(width = 8, offset = 3,
-                  tableOutput(outputId = "stats_out"))),
+  fluidRow(column(width = 4, offset = 1,
+                  htmlOutput(outputId = "tab1")),
+           column(width = 4, offset = 2,
+                  htmlOutput(outputId = "tab2"))),
+  
+  fluidRow(column(width = 5, offset = 1,
+                  tableOutput(outputId = "stats_out")),
+           column(width = 5, offset = 1,
+                  tableOutput(outputId = "probs_out"))),
   
   fluidRow(column(width = 10, offset = 0,
                   wellPanel(HTML(
@@ -87,6 +96,14 @@ ui <- fluidPage(
 ## Define server logic required to calculate the stats and generate the graphs
 
 server <- function(input, output) {
+  
+  output$tab1 <- renderText({
+    paste("<b><u>Model Statistics</u></b>")
+  })
+  
+  output$tab2 <- renderText({
+    paste("<b><u>Probability Table</u></b>")
+  })
   
   output$stats_out <- renderTable({
     
@@ -244,15 +261,43 @@ server <- function(input, output) {
                   # how far is the d from the simulated mean of d, in standardized units?
                   # z = (our observation d' - est. pop mean d')/ est. pop sd
                   # Dolinar (2014)
-                  "p" = 2*pnorm(-abs(d - mean(sim_stats$sim_d)/sd(sim_stats$sim_d))),
+                  "p" = 2*pnorm(-abs(d - mean(sim_stats$sim_d)/sd(sim_stats$sim_d)))))
                   # p = pnorm(-abs(z)), Black (2015)
-                  "Ph" = h_rate,
-                  "Pm" = 1 - h_rate,
-                  "Pf" = f_rate,
-                  "Pcr" = 1 - f_rate))
-    # hit and false alarm rates, should be reported as standard with d' and Beta (Wickens, 2001)
+
  
     }, align = "c")
+  
+  output$probs_out <- renderTable({
+    
+    yes <- input$hits + input$misses
+    no <- input$false_alarms + input$correct_rejections
+    
+    h_rate <- input$hits / yes
+    
+    if (h_rate == 0) 
+    {h_rate <- 0 + 1/(2 * yes)}
+    else if (h_rate == 1)
+    {h_rate <- 1 - 1/(2 * yes)}
+    else 
+    {h_rate <- input$hits / yes}
+    
+    f_rate <- input$false_alarms / no
+    
+    if (f_rate == 0) 
+    {f_rate <- 0 + 1/(2 * no)} 
+    else if (f_rate == 1)
+    {f_rate <- 1 - 1/(2 * no)} 
+    else 
+    {f_rate <- input$false_alarms / no}
+    
+    return(tibble(" " = c("Correct", "Incorrect"),
+                  "Yes Response" = c(h_rate, 1 - h_rate),
+                  "No Response" = c(f_rate, 1 - f_rate)))
+    # hit and false alarm rates, should be reported as standard with d' and Beta 
+    # as  h anf f report on real data, but d' and Beta are theoretical models 
+    # statistics(Wickens, 2001)))
+    
+  })
   
   output$d_plot <- renderPlot({
     
