@@ -20,7 +20,7 @@ library(tidyverse)
 # none of my testing has run up against these problems thus far- feel free to
 # test it and email problems/fixes to me or fix it yourself.
 
-# It is ugly.
+# It is ugly and simplistic, additions may be made in the future (eg. different criterion choices, ROC curve, more complex models).
 
 
 
@@ -164,15 +164,16 @@ server <- function(input, output) {
     #    There are unequal-variance models, but they are beyond my current 
     #    understanding.
     
-    # Criterion B chosen because the tool which this is based upon uses that     ## needs more information here
-    # statistic, (Wickens, 2001).
+    # Criterion B chosen because the tool which this is based upon uses that
+    # statistic, and takes into account the f and h probability distributions 
+    # (Wickens, 2001).
     
     # Resampled data to obtain z and p values, comparing d' to 0 (the mean 
     # of the noise distribution, meaning that the observed results of the 
     # experiment for the signal + noise trials do not differ from those of
     # the noise trials.)
     
-    # simulation based upon 1) lessons from the research cycle course (Barr and DeBruine, 2017).
+    # simulation based upon lessons from the research cycle course (Barr and DeBruine, 2017).
     # and tuition received from Dr DeBruine as part of my dissertation project work.
     
     # empty data frame for simulation of hits and false alarms
@@ -362,7 +363,7 @@ server <- function(input, output) {
 
 # Run it
 shinyApp(ui = ui, server = server)
-
+ 
 
 
 ##### References #####
